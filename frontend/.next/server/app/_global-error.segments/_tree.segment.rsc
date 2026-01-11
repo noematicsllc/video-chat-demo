@@ -1,0 +1,1 @@
+0:{"buildId":"vmz5U-RIENNtq0g2rzd5L","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false},"staleTime":300}

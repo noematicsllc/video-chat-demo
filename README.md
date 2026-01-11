@@ -1,11 +1,10 @@
 # LiveKit Video Chat Application
 
-A full-featured video chat application built with FastAPI backend, React frontend, Zitadel authentication, and external LiveKit server integration.
+A full-featured video chat application built with Next.js, Zitadel authentication, and external LiveKit server integration.
 
 ## Architecture
 
-- **Backend**: FastAPI (Python 3.13+) with Zitadel OAuth authentication
-- **Frontend**: React + TypeScript + Vite
+- **Frontend & API**: Next.js (React + TypeScript) with server-side API routes
 - **Authentication**: Zitadel identity provider
 - **Video/Audio**: LiveKit server (external)
 
@@ -22,42 +21,11 @@ A full-featured video chat application built with FastAPI backend, React fronten
 
 ### Prerequisites
 
-- Python 3.13+
 - Node.js 20+
-- uv (Python package manager)
 - Zitadel instance configured
 - LiveKit server (external)
 
-### Backend Setup
-
-1. Navigate to backend directory:
-```bash
-cd backend
-```
-
-2. Install dependencies:
-```bash
-uv sync
-# or
-pip install -r requirements.txt
-```
-
-3. Create `.env` file:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. Run the backend:
-```bash
-uvicorn app.main:app --reload
-# or
-uv run uvicorn app.main:app --reload
-```
-
-Backend will run on `http://localhost:8000`
-
-### Frontend Setup
+### Setup
 
 1. Navigate to frontend directory:
 ```bash
@@ -69,53 +37,50 @@ cd frontend
 npm install
 ```
 
-3. Create `.env` file:
+3. Create `.env.local` file:
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
+# Copy from example if available, or create new
 ```
 
-4. Run the frontend:
+4. Configure environment variables (see Environment Variables section below)
+
+5. Run the development server:
 ```bash
 npm run dev
 ```
 
-Frontend will run on `http://localhost:5173`
+The application will run on `http://localhost:3000`
 
 ## Environment Variables
 
-### Backend (.env)
+### Frontend (.env.local)
+
+**Note:** Next.js uses `.env.local` for local development (not committed to git).
 
 ```env
-# Zitadel OAuth Configuration
+# Zitadel OAuth Configuration (client-side)
+NEXT_PUBLIC_ZITADEL_ISSUER_URL=https://your-zitadel-instance.com
+NEXT_PUBLIC_ZITADEL_CLIENT_ID=your-client-id
+
+# Zitadel OAuth Configuration (server-side - for API routes)
 ZITADEL_ISSUER_URL=https://your-zitadel-instance.com
 ZITADEL_CLIENT_ID=your-client-id
 ZITADEL_CLIENT_SECRET=your-client-secret
 
-# LiveKit Configuration
+# LiveKit Configuration (server-side only)
 LIVEKIT_API_KEY=your-livekit-api-key
 LIVEKIT_API_SECRET=your-livekit-api-secret
 LIVEKIT_SERVER_URL=wss://your-livekit-server.com
 
-# Backend Configuration
-BACKEND_URL=http://localhost:8000
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+# Authentication Configuration (server-side)
 REQUIRE_AUTH=true  # Set to false to disable authentication (development only)
-
-# JWT Configuration
 JWT_ALGORITHM=RS256
 ```
 
-### Frontend (.env)
-
-```env
-# Backend API URL
-VITE_BACKEND_URL=http://localhost:8000
-
-# Zitadel OAuth Configuration
-VITE_ZITADEL_ISSUER_URL=https://your-zitadel-instance.com
-VITE_ZITADEL_CLIENT_ID=your-client-id
-```
+**Important:** 
+- Next.js requires the `NEXT_PUBLIC_` prefix for client-side environment variables
+- Server-side variables (without `NEXT_PUBLIC_`) are only available in API routes and server components
+- Never expose `LIVEKIT_API_SECRET` or `ZITADEL_CLIENT_SECRET` to the client
 
 ## Deployment with Coolify
 
@@ -125,26 +90,40 @@ VITE_ZITADEL_CLIENT_ID=your-client-id
 2. Coolify will automatically detect the Dockerfile
 3. Configure environment variables in Coolify's environment section:
 
-**Backend Environment Variables:**
+**All Environment Variables (set in Coolify):**
+
 ```
-ZITADEL_ISSUER_URL=https://your-zitadel-instance.com
+# Zitadel OAuth Configuration
+# Client-side (needs NEXT_PUBLIC_ prefix)
+NEXT_PUBLIC_ZITADEL_ISSUER_URL=https://auth.bannerhmk.com
+NEXT_PUBLIC_ZITADEL_CLIENT_ID=your-client-id
+
+# Server-side (no prefix)
+ZITADEL_ISSUER_URL=https://auth.bannerhmk.com
 ZITADEL_CLIENT_ID=your-client-id
 ZITADEL_CLIENT_SECRET=your-client-secret
+
+# LiveKit Configuration (server-side only)
 LIVEKIT_API_KEY=your-livekit-api-key
 LIVEKIT_API_SECRET=your-livekit-api-secret
 LIVEKIT_SERVER_URL=wss://your-livekit-server.com
-BACKEND_URL=https://your-domain.com
-CORS_ORIGINS=https://your-domain.com
-REQUIRE_AUTH=true  # Set to false to disable authentication (development only)
+
+# Authentication Configuration (server-side)
+REQUIRE_AUTH=true
 JWT_ALGORITHM=RS256
+
+# Next.js Server Configuration
+PORT=3000
+HOSTNAME=0.0.0.0
+NODE_ENV=production
 ```
 
 **Important Notes:**
-- Update `BACKEND_URL` to your deployed backend URL
-- Update `CORS_ORIGINS` to include your frontend domain
-- The Dockerfile builds both frontend and backend in a single container
-- Frontend static files are served by FastAPI
-- Coolify's built-in proxy handles routing
+- Replace `https://your-domain.com` with your actual Coolify domain
+- **Zitadel values**: Set both `ZITADEL_*` (server-side) and `NEXT_PUBLIC_ZITADEL_*` (client-side) to the same values
+- The Dockerfile builds and runs Next.js only (single container)
+- Next.js runs on port 3000
+- Coolify's reverse proxy will route traffic to port 3000
 
 4. Deploy!
 
@@ -152,41 +131,30 @@ The application will be available on the domain configured in Coolify.
 
 ### Health Check
 
-The backend includes a health check endpoint at `/health` that Coolify can use for monitoring.
+Next.js includes built-in health monitoring. The root endpoint `/` can be used for health checks.
 
 ## Project Structure
 
 ```
 video-chat-demo/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              # FastAPI application
-│   │   ├── config.py            # Configuration
-│   │   ├── auth.py              # Zitadel authentication
-│   │   ├── livekit_service.py   # LiveKit token generation
-│   │   ├── models.py            # Pydantic models
-│   │   └── routes/              # API routes
-│   ├── requirements.txt
-│   └── pyproject.toml
 ├── frontend/
-│   ├── src/
-│   │   ├── components/          # React components
-│   │   ├── hooks/               # Custom hooks
-│   │   ├── services/            # API client
-│   │   └── utils/               # Utilities
+│   ├── app/
+│   │   ├── api/                    # Next.js API routes
+│   │   │   ├── auth/               # OAuth token exchange
+│   │   │   └── tokens/             # LiveKit token generation
+│   │   ├── components/             # React components
+│   │   ├── hooks/                  # Custom hooks
+│   │   ├── lib/                    # Utilities and API client
+│   │   └── page.tsx                # Main page
 │   └── package.json
-├── Dockerfile                   # Single container build
+├── Dockerfile                      # Single container build
 └── README.md
 ```
 
 ## API Endpoints
 
-- `GET /health` - Health check
-- `GET /api/rooms` - List rooms (requires auth)
-- `GET /api/rooms/{name}` - Get room info (requires auth)
 - `POST /api/tokens` - Generate LiveKit token (requires auth)
-- `GET /api/auth/callback` - OAuth callback
+- `POST /api/auth/token` - Exchange OAuth code for JWT token
 
 ## License
 

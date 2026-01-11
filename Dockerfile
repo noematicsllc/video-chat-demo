@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for LiveKit Video Chat App
 
-# Stage 1: Build frontend
+# Stage 1: Build frontend (Next.js)
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
@@ -9,50 +9,42 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # Copy frontend source
 COPY frontend/ ./
 
-# Build frontend
+# Build Next.js app with standalone output
 RUN npm run build
 
-# Stage 2: Backend runtime
-FROM python:3.13-slim
+# Copy public and static files to standalone directory (required by Next.js)
+RUN cp -r public .next/standalone/public && \
+    cp -r .next/static .next/standalone/.next/static
+
+# Stage 2: Runtime
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Install curl for health checks
+RUN apk add --no-cache curl
 
-# Copy backend requirements
-COPY backend/requirements.txt ./
+# Copy Next.js standalone build
+COPY --from=frontend-builder /app/frontend/.next/standalone ./
+COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
+COPY --from=frontend-builder /app/frontend/public ./public
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy backend application
-COPY backend/ ./backend/
-
-# Copy built frontend from builder stage
-COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
-
-# Set Python path and environment
-ENV PYTHONPATH=/app/backend
-ENV PYTHONUNBUFFERED=1
-
-# Set working directory to backend
-WORKDIR /app/backend
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # Expose port
-EXPOSE 8000
+EXPOSE 3000
 
-# Health check (simplified - just check if process is running)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
 
-# Run the application
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
+# Run Next.js server
+CMD ["node", "server.js"]
