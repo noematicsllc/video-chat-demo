@@ -46,6 +46,18 @@
       "namedRegex": "^/api/auth/token(?:/)?$"
     },
     {
+      "page": "/api/chat/token",
+      "regex": "^/api/chat/token(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/chat/token(?:/)?$"
+    },
+    {
+      "page": "/api/tokens",
+      "regex": "^/api/tokens(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/tokens(?:/)?$"
+    },
+    {
       "page": "/auth/callback",
       "regex": "^/auth/callback(?:/)?$",
       "routeKeys": {},

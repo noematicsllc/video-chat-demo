@@ -74,25 +74,25 @@ export class ChatClient {
       const channel = this.socket.channel(topic, {});
 
       // Handle presence events
-      channel.on('presence_state', (state: PresenceState) => {
+      channel.on('presence_state', (state: unknown) => {
         console.log('Presence state:', state);
         if (this.callbacks.onPresenceState) {
-          this.callbacks.onPresenceState(state);
+          this.callbacks.onPresenceState(state as PresenceState);
         }
       });
 
-      channel.on('presence_diff', (diff: PresenceDiff) => {
+      channel.on('presence_diff', (diff: unknown) => {
         console.log('Presence diff:', diff);
         if (this.callbacks.onPresenceDiff) {
-          this.callbacks.onPresenceDiff(diff);
+          this.callbacks.onPresenceDiff(diff as PresenceDiff);
         }
       });
 
       // Handle new messages
-      channel.on('new_msg', (payload: ChatMessage) => {
+      channel.on('new_msg', (payload: unknown) => {
         console.log('New message:', payload);
         if (this.callbacks.onNewMessage) {
-          this.callbacks.onNewMessage(payload);
+          this.callbacks.onNewMessage(payload as ChatMessage);
         }
       });
 

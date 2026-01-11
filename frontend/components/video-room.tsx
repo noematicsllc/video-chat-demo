@@ -72,6 +72,10 @@ export function VideoRoom({ serverUrl, token, roomName, participantName, onLeave
         showParticipants={showParticipants}
         setShowParticipants={setShowParticipants}
         onLeave={onLeave}
+        chatToken={chatToken}
+        conversationId={conversationId}
+        chatWsUrl={chatWsUrl}
+        currentUserId={currentUserId}
       />
       <RoomAudioRenderer />
     </LiveKitRoom>
@@ -86,6 +90,10 @@ interface RoomContentProps {
   showParticipants: boolean
   setShowParticipants: (show: boolean) => void
   onLeave: () => void
+  chatToken: string | null
+  conversationId: string
+  chatWsUrl: string
+  currentUserId: string
 }
 
 function RoomContent({
@@ -96,6 +104,10 @@ function RoomContent({
   showParticipants,
   setShowParticipants,
   onLeave,
+  chatToken,
+  conversationId,
+  chatWsUrl,
+  currentUserId,
 }: RoomContentProps) {
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()

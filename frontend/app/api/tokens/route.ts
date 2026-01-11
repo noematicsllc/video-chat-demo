@@ -44,7 +44,7 @@ async function verifyToken(token: string): Promise<jose.JWTPayload> {
     const { payload } = await jose.jwtVerify(token, JWKS, {
       issuer: ZITADEL_ISSUER_URL,
       audience: ZITADEL_CLIENT_ID,
-      algorithms: [JWT_ALGORITHM as jose.JWSAlgorithm],
+      algorithms: [JWT_ALGORITHM as string],
     });
 
     return payload;

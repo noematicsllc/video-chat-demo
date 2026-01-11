@@ -2,6 +2,8 @@
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/token/route": "app/api/auth/token/route.js",
+  "/api/chat/token/route": "app/api/chat/token/route.js",
+  "/api/tokens/route": "app/api/tokens/route.js",
   "/auth/callback/page": "app/auth/callback/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js"
