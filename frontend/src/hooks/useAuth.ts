@@ -38,8 +38,8 @@ export function useAuth() {
         console.error('Failed to decode token:', e);
         logout();
       }
-    } else if (!hasZitadelConfig) {
-      // If no Zitadel config, set anonymous user (backend will handle auth)
+    } else {
+      // If no token, set anonymous user (backend will handle auth requirement)
       setUser({
         sub: 'anonymous-user',
         preferred_username: 'Anonymous User',
@@ -47,7 +47,7 @@ export function useAuth() {
       });
     }
     setLoading(false);
-  }, [hasZitadelConfig]);
+  }, []);
 
   const login = () => {
     // If Zitadel is not configured, do nothing (backend handles auth)
@@ -93,8 +93,8 @@ export function useAuth() {
     user,
     token,
     loading,
-    // If Zitadel is configured, require token. Otherwise, user is enough (backend handles it)
-    isAuthenticated: hasZitadelConfig ? (!!token && !!user) : !!user,
+    // Always consider user authenticated (backend handles auth requirement)
+    isAuthenticated: !!user,
     login,
     logout,
     setAuthToken,
