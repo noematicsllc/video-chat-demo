@@ -1,6 +1,7 @@
 """LiveKit token generation endpoints."""
 
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -25,15 +26,21 @@ async def create_token(
     Requires authentication via Bearer token (or mock user if REQUIRE_AUTH=false).
     """
     try:
-        # Extract user identity from token (use 'sub' or 'preferred_username')
-        participant_identity = current_user.get("sub") or current_user.get(
-            "preferred_username", "unknown"
+        # Extract base user identity from token (use 'sub' or 'preferred_username')
+        base_identity = current_user.get("sub") or current_user.get(
+            "preferred_username", "user"
         )
+        
+        # Add a random UUID suffix to ensure unique identity for each token request
+        # This allows multiple participants to join with different identities
+        random_suffix = str(uuid.uuid4())[:8]  # Use first 8 chars of UUID for readability
+        participant_identity = f"{base_identity}-{random_suffix}"
+        
         participant_name = (
             request.participant_name
             or current_user.get("name")
             or current_user.get("preferred_username")
-            or participant_identity
+            or base_identity
         )
 
         logger.info(
