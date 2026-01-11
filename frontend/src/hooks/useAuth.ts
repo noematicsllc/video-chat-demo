@@ -21,32 +21,44 @@ export function useAuth() {
   const hasZitadelConfig = !!(config.zitadelIssuerUrl && config.zitadelClientId);
 
   useEffect(() => {
-    // Check if we have a token in localStorage
-    const storedToken = localStorage.getItem('auth_token');
-    if (storedToken) {
-      setToken(storedToken);
-      // Decode token to get user info (basic implementation)
-      try {
-        const payload = JSON.parse(atob(storedToken.split('.')[1]));
+    const initializeAuth = () => {
+      // Check if we have a token in localStorage
+      const storedToken = localStorage.getItem('auth_token');
+      if (storedToken) {
+        setToken(storedToken);
+        // Decode token to get user info (basic implementation)
+        try {
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          setUser({
+            sub: payload.sub,
+            name: payload.name,
+            preferred_username: payload.preferred_username,
+            email: payload.email,
+          });
+        } catch (e) {
+          console.error('Failed to decode token:', e);
+          // Clear invalid token
+          localStorage.removeItem('auth_token');
+          setToken(null);
+          // Set anonymous user instead of calling logout (which might cause issues)
+          setUser({
+            sub: 'anonymous-user',
+            preferred_username: 'Anonymous User',
+            name: 'Anonymous User',
+          });
+        }
+      } else {
+        // If no token, set anonymous user (backend will handle auth requirement)
         setUser({
-          sub: payload.sub,
-          name: payload.name,
-          preferred_username: payload.preferred_username,
-          email: payload.email,
+          sub: 'anonymous-user',
+          preferred_username: 'Anonymous User',
+          name: 'Anonymous User',
         });
-      } catch (e) {
-        console.error('Failed to decode token:', e);
-        logout();
       }
-    } else {
-      // If no token, set anonymous user (backend will handle auth requirement)
-      setUser({
-        sub: 'anonymous-user',
-        preferred_username: 'Anonymous User',
-        name: 'Anonymous User',
-      });
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = () => {

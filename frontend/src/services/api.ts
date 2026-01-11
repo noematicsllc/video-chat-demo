@@ -19,6 +19,19 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle response errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Extract error message from response
+    if (error.response) {
+      const message = error.response.data?.detail || error.response.data?.message || error.message;
+      error.message = message;
+    }
+    return Promise.reject(error);
+  }
+);
+
 export interface TokenRequest {
   room_name: string;
   participant_name?: string;

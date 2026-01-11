@@ -1,11 +1,15 @@
 """LiveKit token generation endpoints."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth import GetCurrentUser
 from app.config import settings
 from app.livekit_service import generate_access_token
 from app.models import TokenRequest, TokenResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/tokens", tags=["tokens"])
 
@@ -18,7 +22,7 @@ async def create_token(
     """
     Generate a LiveKit access token for the authenticated user.
 
-    Requires authentication via Bearer token.
+    Requires authentication via Bearer token (or mock user if REQUIRE_AUTH=false).
     """
     try:
         # Extract user identity from token (use 'sub' or 'preferred_username')
@@ -32,6 +36,11 @@ async def create_token(
             or participant_identity
         )
 
+        logger.info(
+            f"Generating token for room={request.room_name}, "
+            f"identity={participant_identity}, name={participant_name}"
+        )
+
         # Generate LiveKit access token
         token = generate_access_token(
             room_name=request.room_name,
@@ -41,7 +50,14 @@ async def create_token(
 
         return TokenResponse(token=token, url=settings.livekit_server_url)
 
+    except ValueError as e:
+        logger.error(f"Validation error generating token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid request: {str(e)}",
+        )
     except Exception as e:
+        logger.exception(f"Failed to generate token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate token: {str(e)}",

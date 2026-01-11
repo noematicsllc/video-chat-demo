@@ -19,12 +19,29 @@ def get_public_key(token: str):
     """Get the public key from JWKS for token validation."""
     from jose import jwt as jose_jwt
 
+    if not settings.zitadel_issuer_url:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Zitadel issuer URL is not configured",
+        )
+
     # In production, cache JWKS
     jwks_url = f"{settings.zitadel_issuer_url}/.well-known/jwks.json"
-    with httpx.Client() as client:
-        response = client.get(jwks_url)
-        response.raise_for_status()
-        jwks = response.json()
+    try:
+        with httpx.Client() as client:
+            response = client.get(jwks_url, timeout=10.0)
+            response.raise_for_status()
+            jwks = response.json()
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Unable to fetch JWKS from Zitadel: {str(e)}",
+        )
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Zitadel JWKS endpoint returned error: {e.response.status_code}",
+        )
 
     unverified_header = jose_jwt.get_unverified_header(token)
     key_data = {}
@@ -78,6 +95,7 @@ async def verify_token(
     """
     # If authentication is disabled, return a mock user
     if not settings.require_auth:
+        logger.debug("Authentication disabled, returning mock user")
         return {
             "sub": "mock-user",
             "preferred_username": "mock-user",
@@ -109,12 +127,16 @@ async def verify_token(
 
         return payload
     except JWTError as e:
+        logger.warning(f"JWT validation failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication credentials: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions as-is
     except Exception as e:
+        logger.exception(f"Unexpected error during authentication: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication error: {str(e)}",

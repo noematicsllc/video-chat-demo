@@ -48,9 +48,11 @@ export function VideoGrid({ room, participants }: VideoGridProps) {
       participant: Participant
     ) => {
       if (track.kind === 'video') {
-        const newTracks = new Map(remoteVideoTracks);
-        newTracks.set(participant.identity, track as VideoTrack);
-        setRemoteVideoTracks(newTracks);
+        setRemoteVideoTracks((prev) => {
+          const newTracks = new Map(prev);
+          newTracks.set(participant.identity, track as VideoTrack);
+          return newTracks;
+        });
       }
     };
 
@@ -60,9 +62,11 @@ export function VideoGrid({ room, participants }: VideoGridProps) {
       participant: Participant
     ) => {
       if (track.kind === 'video') {
-        const newTracks = new Map(remoteVideoTracks);
-        newTracks.delete(participant.identity);
-        setRemoteVideoTracks(newTracks);
+        setRemoteVideoTracks((prev) => {
+          const newTracks = new Map(prev);
+          newTracks.delete(participant.identity);
+          return newTracks;
+        });
       }
     };
 
@@ -73,7 +77,7 @@ export function VideoGrid({ room, participants }: VideoGridProps) {
       room.off(RoomEvent.TrackSubscribed, handleTrackSubscribed);
       room.off(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
     };
-  }, [room, participants, remoteVideoTracks]);
+  }, [room, participants]);
 
   const allParticipants = localVideoTrack
     ? [{ identity: 'local', videoTrack: localVideoTrack }, ...Array.from(remoteVideoTracks.entries()).map(([identity, track]) => ({ identity, videoTrack: track }))]

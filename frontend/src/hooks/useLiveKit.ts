@@ -24,17 +24,28 @@ export function useLiveKit(): UseLiveKitReturn {
     try {
       setError(null);
       
-      // Get LiveKit server URL
-      const serverUrl = getLiveKitServerUrl();
-      if (!serverUrl) {
-        throw new Error('LiveKit server URL not configured');
+      // Generate token from backend
+      let token: string;
+      let finalServerUrl: string;
+      try {
+        const tokenResponse = await generateToken({
+          room_name: roomName,
+          participant_name: participantName,
+        });
+        token = tokenResponse.token;
+        finalServerUrl = tokenResponse.url || getLiveKitServerUrl() || '';
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.detail || err?.message || 'Failed to generate token';
+        throw new Error(`Token generation failed: ${errorMessage}`);
       }
 
-      // Generate token from backend
-      const { token, url } = await generateToken({
-        room_name: roomName,
-        participant_name: participantName,
-      });
+      if (!token) {
+        throw new Error('No token received from server');
+      }
+
+      if (!finalServerUrl) {
+        throw new Error('LiveKit server URL not configured');
+      }
 
       // Create room instance
       const newRoom = new Room();
@@ -59,10 +70,16 @@ export function useLiveKit(): UseLiveKitReturn {
       });
 
       // Connect to room
-      await newRoom.connect(url || serverUrl, token);
+      await newRoom.connect(finalServerUrl, token);
       
-      // Enable camera and microphone
-      await newRoom.localParticipant.enableCameraAndMicrophone();
+      // Enable camera and microphone (may fail if permissions not granted)
+      try {
+        await newRoom.localParticipant.setCameraEnabled(true);
+        await newRoom.localParticipant.setMicrophoneEnabled(true);
+      } catch (err) {
+        console.warn('Failed to enable camera/microphone:', err);
+        // Continue even if camera/mic can't be enabled
+      }
 
       setRoom(newRoom);
     } catch (err) {

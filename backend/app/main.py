@@ -1,5 +1,6 @@
 """FastAPI application entry point."""
 
+import logging
 import os
 from pathlib import Path
 
@@ -10,6 +11,24 @@ from fastapi.responses import FileResponse
 
 from app.config import settings
 from app.routes import auth, rooms, tokens
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+# Validate critical configuration on startup
+try:
+    if not settings.livekit_api_key:
+        logger.warning("LIVEKIT_API_KEY is not set - token generation will fail")
+    if not settings.livekit_api_secret:
+        logger.warning("LIVEKIT_API_SECRET is not set - token generation will fail")
+    if settings.require_auth and (not settings.zitadel_issuer_url or not settings.zitadel_client_id):
+        logger.warning("REQUIRE_AUTH is true but Zitadel configuration is missing")
+except Exception as e:
+    logger.error(f"Error validating configuration: {e}")
 
 app = FastAPI(
     title="LiveKit Video Chat API",
@@ -68,8 +87,13 @@ if frontend_dist.exists():
             return {"error": "Not found"}
         
         file_path = frontend_dist / path
-        if file_path.exists() and file_path.is_file() and file_path.is_relative_to(frontend_dist):
-            return FileResponse(str(file_path))
+        # Security check: ensure file is within frontend_dist directory
+        try:
+            file_path.resolve().relative_to(frontend_dist.resolve())
+            if file_path.exists() and file_path.is_file():
+                return FileResponse(str(file_path))
+        except ValueError:
+            pass  # Path is outside dist directory, ignore
         
         # For SPA routing, serve index.html for all non-API routes
         return FileResponse(str(frontend_dist / "index.html"))

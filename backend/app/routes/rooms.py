@@ -1,9 +1,13 @@
 """Room management endpoints."""
 
+import logging
+
 from fastapi import APIRouter, Depends
 
 from app.auth import GetCurrentUser
 from app.models import RoomInfo, RoomListResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
