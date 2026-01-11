@@ -50,7 +50,7 @@ def generate_access_token(
             token = token.with_name(participant_name)
 
         # Add video grant
-        token = token.with_metadata("").with_grant(
+        token = token.with_grant(
             api.VideoGrant(
                 room_join=True,
                 room=room_name,
