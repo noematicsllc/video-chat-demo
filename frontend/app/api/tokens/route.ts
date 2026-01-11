@@ -36,8 +36,9 @@ async function verifyToken(token: string): Promise<jose.JWTPayload> {
   }
 
   // Create remote JWKS for token verification
+  // Zitadel uses /oauth/v2/keys for JWKS (not /.well-known/jwks.json)
   const JWKS = jose.createRemoteJWKSet(
-    new URL(`${ZITADEL_ISSUER_URL}/.well-known/jwks.json`)
+    new URL(`${ZITADEL_ISSUER_URL}/oauth/v2/keys`)
   );
 
   try {
