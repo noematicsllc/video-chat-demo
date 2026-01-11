@@ -1,5 +1,6 @@
 """Zitadel authentication middleware and dependency injection."""
 
+import logging
 from typing import Annotated
 
 import httpx
@@ -11,6 +12,8 @@ from jose import JWTError, jwt
 from jose.utils import base64url_decode
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 security = HTTPBearer(auto_error=False)
 
