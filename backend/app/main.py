@@ -46,6 +46,8 @@ async def health():
 
 
 # Serve static files from frontend/dist if it exists
+# In Docker: workdir is /app/backend, so app/main.py -> /app/backend/app/main.py
+# Path: app/main.py -> backend/app -> backend -> /app -> frontend/dist
 frontend_dist = Path(__file__).parent.parent.parent / "frontend" / "dist"
 if frontend_dist.exists():
     # Mount static assets

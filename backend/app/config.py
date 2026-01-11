@@ -6,10 +6,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # Zitadel OAuth configuration
-    zitadel_issuer_url: str
-    zitadel_client_id: str
-    zitadel_client_secret: str
+    # Zitadel OAuth configuration (required only if require_auth is True)
+    zitadel_issuer_url: str = ""
+    zitadel_client_id: str = ""
+    zitadel_client_secret: str = ""
 
     # LiveKit configuration
     livekit_api_key: str
@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # Backend configuration
     backend_url: str = "http://localhost:8000"
     cors_origins: str | list[str] = "http://localhost:5173,http://localhost:3000"
+    require_auth: bool = True  # Set to False to disable authentication
 
     # JWT configuration
     jwt_algorithm: str = "RS256"

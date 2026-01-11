@@ -12,7 +12,7 @@ from jose.utils import base64url_decode
 
 from app.config import settings
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def get_public_key(token: str):
@@ -62,20 +62,36 @@ def get_public_key(token: str):
 
 
 async def verify_token(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> dict:
     """
     Verify Zitadel JWT token and extract user information.
 
     Args:
-        credentials: Bearer token credentials from request header
+        credentials: Bearer token credentials from request header (optional)
 
     Returns:
-        Decoded token payload with user information
+        Decoded token payload with user information, or mock user if auth disabled
 
     Raises:
-        HTTPException: If token is invalid or expired
+        HTTPException: If token is invalid or expired (when auth is required)
     """
+    # If authentication is disabled, return a mock user
+    if not settings.require_auth:
+        return {
+            "sub": "mock-user",
+            "preferred_username": "mock-user",
+            "name": "Mock User",
+        }
+
+    # If no credentials provided and auth is required, raise error
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = credentials.credentials
 
     try:

@@ -100,6 +100,7 @@ LIVEKIT_SERVER_URL=wss://your-livekit-server.com
 # Backend Configuration
 BACKEND_URL=http://localhost:8000
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+REQUIRE_AUTH=true  # Set to false to disable authentication (development only)
 
 # JWT Configuration
 JWT_ALGORITHM=RS256
@@ -134,6 +135,7 @@ LIVEKIT_API_SECRET=your-livekit-api-secret
 LIVEKIT_SERVER_URL=wss://your-livekit-server.com
 BACKEND_URL=https://your-domain.com
 CORS_ORIGINS=https://your-domain.com
+REQUIRE_AUTH=true  # Set to false to disable authentication (development only)
 JWT_ALGORITHM=RS256
 ```
 
