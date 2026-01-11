@@ -1,6 +1,6 @@
 """LiveKit token generation service."""
 
-from livekit.api import AccessToken, VideoGrant
+from livekit import api
 
 from app.config import settings
 
@@ -21,7 +21,7 @@ def generate_access_token(
     Returns:
         JWT access token string
     """
-    token = AccessToken(
+    token = api.AccessToken(
         settings.livekit_api_key,
         settings.livekit_api_secret,
     ).with_identity(participant_identity)
@@ -30,7 +30,7 @@ def generate_access_token(
         token = token.with_name(participant_name)
 
     token = token.with_metadata("").with_grant(
-        VideoGrant(
+        api.VideoGrant(
             room_join=True,
             room=room_name,
             can_publish=True,
