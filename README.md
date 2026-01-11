@@ -7,14 +7,17 @@ A full-featured video chat application built with Next.js, Zitadel authenticatio
 - **Frontend & API**: Next.js (React + TypeScript) with server-side API routes
 - **Authentication**: Zitadel identity provider
 - **Video/Audio**: LiveKit server (external)
+- **Chat**: Phoenix/Elixir chat server (external, WebSocket-based)
 
 ## Features
 
 - Minimal options page for LiveKit server configuration
 - Zitadel OAuth authentication
 - Real-time video and audio chat
+- Real-time text chat via Phoenix WebSocket server
 - Join/leave rooms
 - Audio/video controls (mute/unmute, camera on/off)
+- Presence tracking for chat
 - Responsive UI
 
 ## Development Setup
@@ -24,6 +27,7 @@ A full-featured video chat application built with Next.js, Zitadel authenticatio
 - Node.js 20+
 - Zitadel instance configured
 - LiveKit server (external)
+- Phoenix chat server (external, see CHAT_SERVER.md)
 
 ### Setup
 
@@ -72,6 +76,10 @@ LIVEKIT_API_KEY=your-livekit-api-key
 LIVEKIT_API_SECRET=your-livekit-api-secret
 LIVEKIT_SERVER_URL=wss://your-livekit-server.com
 
+# Chat Server Configuration (server-side only)
+CHAT_WS_URL=wss://your-chat-server.com/socket
+JWT_SECRET=your-shared-jwt-secret-key
+
 # Authentication Configuration (server-side)
 REQUIRE_AUTH=true  # Set to false to disable authentication (development only)
 JWT_ALGORITHM=RS256
@@ -80,7 +88,8 @@ JWT_ALGORITHM=RS256
 **Important:** 
 - Next.js requires the `NEXT_PUBLIC_` prefix for client-side environment variables
 - Server-side variables (without `NEXT_PUBLIC_`) are only available in API routes and server components
-- Never expose `LIVEKIT_API_SECRET` or `ZITADEL_CLIENT_SECRET` to the client
+- Never expose `LIVEKIT_API_SECRET`, `ZITADEL_CLIENT_SECRET`, or `JWT_SECRET` to the client
+- `JWT_SECRET` must match the JWT_SECRET configured in the Phoenix chat server
 
 ## Deployment with Coolify
 
@@ -108,6 +117,10 @@ LIVEKIT_API_KEY=your-livekit-api-key
 LIVEKIT_API_SECRET=your-livekit-api-secret
 LIVEKIT_SERVER_URL=wss://your-livekit-server.com
 
+# Chat Server Configuration (server-side only)
+CHAT_WS_URL=wss://your-chat-server.com/socket
+JWT_SECRET=your-shared-jwt-secret-key
+
 # Authentication Configuration (server-side)
 REQUIRE_AUTH=true
 JWT_ALGORITHM=RS256
@@ -121,6 +134,7 @@ NODE_ENV=production
 **Important Notes:**
 - Replace `https://your-domain.com` with your actual Coolify domain
 - **Zitadel values**: Set both `ZITADEL_*` (server-side) and `NEXT_PUBLIC_ZITADEL_*` (client-side) to the same values
+- **Chat Server**: `JWT_SECRET` must match the JWT_SECRET configured in the Phoenix chat server
 - The Dockerfile builds and runs Next.js only (single container)
 - Next.js runs on port 3000
 - Coolify's reverse proxy will route traffic to port 3000
@@ -141,13 +155,15 @@ video-chat-demo/
 │   ├── app/
 │   │   ├── api/                    # Next.js API routes
 │   │   │   ├── auth/               # OAuth token exchange
-│   │   │   └── tokens/             # LiveKit token generation
+│   │   │   ├── tokens/             # LiveKit token generation
+│   │   │   └── chat/               # Chat token generation
 │   │   ├── components/             # React components
 │   │   ├── hooks/                  # Custom hooks
 │   │   ├── lib/                    # Utilities and API client
 │   │   └── page.tsx                # Main page
 │   └── package.json
 ├── Dockerfile                      # Single container build
+├── CHAT_SERVER.md                  # Chat server API documentation
 └── README.md
 ```
 
@@ -155,6 +171,9 @@ video-chat-demo/
 
 - `POST /api/tokens` - Generate LiveKit token (requires auth)
 - `POST /api/auth/token` - Exchange OAuth code for JWT token
+- `GET /api/chat/token` - Generate chat server JWT token (requires auth)
+
+For chat server API documentation, see [CHAT_SERVER.md](CHAT_SERVER.md).
 
 ## License
 

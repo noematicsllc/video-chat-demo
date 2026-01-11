@@ -53,6 +53,11 @@ export interface RoomListResponse {
   rooms: RoomInfo[];
 }
 
+export interface ChatTokenResponse {
+  token: string;
+  ws_url: string;
+}
+
 /**
  * Generate a LiveKit access token from the Next.js API route.
  */
@@ -60,6 +65,14 @@ export async function generateToken(
   request: TokenRequest
 ): Promise<TokenResponse> {
   const response = await apiClient.post<TokenResponse>('/api/tokens', request);
+  return response.data;
+}
+
+/**
+ * Generate a chat server JWT token from the Next.js API route.
+ */
+export async function generateChatToken(): Promise<ChatTokenResponse> {
+  const response = await apiClient.get<ChatTokenResponse>('/api/chat/token');
   return response.data;
 }
 

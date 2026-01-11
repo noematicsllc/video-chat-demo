@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -18,6 +18,9 @@ import { ParticipantList } from "@/components/participant-list"
 import { MessageSquare, Users, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth"
+import { generateChatToken } from "@/lib/api"
+import { roomNameToConversationId } from "@/lib/conversation"
 
 interface VideoRoomProps {
   serverUrl: string
@@ -30,6 +33,27 @@ interface VideoRoomProps {
 export function VideoRoom({ serverUrl, token, roomName, participantName, onLeave }: VideoRoomProps) {
   const [showChat, setShowChat] = useState(true)
   const [showParticipants, setShowParticipants] = useState(false)
+  const [chatToken, setChatToken] = useState<string | null>(null)
+  const [chatWsUrl, setChatWsUrl] = useState<string>("")
+  const { user } = useAuth()
+
+  // Fetch chat token when component mounts
+  useEffect(() => {
+    const fetchChatToken = async () => {
+      try {
+        const response = await generateChatToken()
+        setChatToken(response.token)
+        setChatWsUrl(response.ws_url)
+      } catch (error) {
+        console.error("Failed to fetch chat token:", error)
+      }
+    }
+
+    fetchChatToken()
+  }, [])
+
+  const conversationId = roomNameToConversationId(roomName)
+  const currentUserId = user?.sub || ""
 
   return (
     <LiveKitRoom
@@ -136,7 +160,14 @@ function RoomContent({
         {/* Chat panel */}
         {showChat && (
           <aside className="fixed right-0 top-[57px] bottom-[72px] w-full lg:w-80 flex flex-col bg-card border-l border-border z-10 lg:z-0">
-            <ChatPanel participantName={participantName} onClose={() => setShowChat(false)} />
+            <ChatPanel
+              chatToken={chatToken}
+              conversationId={conversationId}
+              wsUrl={chatWsUrl}
+              currentUserId={currentUserId}
+              participantName={participantName}
+              onClose={() => setShowChat(false)}
+            />
           </aside>
         )}
       </div>

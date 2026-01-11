@@ -22,6 +22,10 @@ LIVEKIT_SERVER_URL=wss://your-livekit-server.com
 REQUIRE_AUTH=true
 JWT_ALGORITHM=RS256
 
+# Chat Server Configuration (server-side only - never expose to client)
+CHAT_WS_URL=wss://your-chat-server.com/socket
+JWT_SECRET=your-shared-jwt-secret-key
+
 # Next.js Server Configuration
 PORT=3000
 HOSTNAME=0.0.0.0
@@ -34,5 +38,6 @@ NODE_ENV=production
 - The application runs Next.js only (single container on port 3000)
 - Coolify will automatically route traffic to port 3000
 - **Zitadel values**: Set both `ZITADEL_*` (server-side) and `NEXT_PUBLIC_ZITADEL_*` (client-side) to the same values
-- **Security**: Never expose `LIVEKIT_API_SECRET` or `ZITADEL_CLIENT_SECRET` with the `NEXT_PUBLIC_` prefix
+- **Security**: Never expose `LIVEKIT_API_SECRET`, `ZITADEL_CLIENT_SECRET`, or `JWT_SECRET` with the `NEXT_PUBLIC_` prefix
+- **Chat Server**: `JWT_SECRET` must match the JWT_SECRET configured in the Phoenix chat server
 - **OAuth Flow**: The current implementation works with public clients (no client secret). If Zitadel is configured as a confidential client, add `ZITADEL_CLIENT_SECRET` and update `/api/auth/token/route.ts` to include it in the token exchange
