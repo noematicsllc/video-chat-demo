@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import * as jose from 'jose';
+import { v5 as uuidv5 } from 'uuid';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const CHAT_WS_URL = process.env.CHAT_WS_URL || 'ws://localhost:4000/socket';
@@ -9,6 +10,25 @@ const ZITADEL_ISSUER_URL = process.env.ZITADEL_ISSUER_URL || '';
 const ZITADEL_CLIENT_ID = process.env.ZITADEL_CLIENT_ID || '';
 const REQUIRE_AUTH = process.env.REQUIRE_AUTH !== 'false'; // Default to true
 const JWT_ALGORITHM = process.env.JWT_ALGORITHM || 'RS256';
+
+// URL namespace UUID for deterministic UUID v5 generation from user IDs
+const USER_ID_NAMESPACE = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+
+/**
+ * Convert a user ID to a UUID format.
+ * If the user ID is already a valid UUID, returns it as-is.
+ * Otherwise, generates a deterministic UUID v5 from the user ID.
+ */
+function userIdToUUID(userId: string): string {
+  // Check if it's already a valid UUID format (8-4-4-4-12 hex digits)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(userId)) {
+    return userId;
+  }
+  
+  // Generate a deterministic UUID v5 from the user ID
+  return uuidv5(userId, USER_ID_NAMESPACE);
+}
 
 /**
  * Verify JWT token from Zitadel using JWKS.
@@ -97,14 +117,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Extract user ID (sub) - should already be a UUID from Zitadel
-    const userId = user.sub as string;
-    if (!userId) {
+    // Extract user ID (sub) from Zitadel token
+    const rawUserId = user.sub as string;
+    if (!rawUserId) {
       return NextResponse.json(
         { detail: 'User ID not found in token' },
         { status: 400 }
       );
     }
+
+    // Convert user ID to UUID format (chat server expects UUID)
+    const userId = userIdToUUID(rawUserId);
 
     // Generate chat token
     const chatToken = await generateChatToken(userId);
