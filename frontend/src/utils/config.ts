@@ -1,6 +1,9 @@
 /** Frontend configuration and utilities. */
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+// Use environment variable if set, otherwise use relative URL (same origin)
+// In production (Docker), frontend and backend are served from the same domain
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
 
 export const config = {
   backendUrl: BACKEND_URL,
