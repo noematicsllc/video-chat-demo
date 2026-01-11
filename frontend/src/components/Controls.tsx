@@ -85,7 +85,7 @@ export function Controls({ room, onLeave }: ControlsProps) {
       }
 
       await applyBackgroundProcessor(track, mode, {
-        blurRadius: 10,
+        blurRadius: 20,
         // For custom backgrounds, you can add a default image URL here
         // backgroundImageUrl: '/path/to/default-background.jpg'
       });
