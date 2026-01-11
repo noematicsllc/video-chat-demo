@@ -16,6 +16,9 @@ export function useAuth() {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem('auth_token')
   );
+  
+  // Check if Zitadel is configured - if not, auth is optional
+  const hasZitadelConfig = !!(config.zitadelIssuerUrl && config.zitadelClientId);
 
   useEffect(() => {
     // Check if we have a token in localStorage
@@ -35,11 +38,22 @@ export function useAuth() {
         console.error('Failed to decode token:', e);
         logout();
       }
+    } else if (!hasZitadelConfig) {
+      // If no Zitadel config, set anonymous user (backend will handle auth)
+      setUser({
+        sub: 'anonymous-user',
+        preferred_username: 'Anonymous User',
+        name: 'Anonymous User',
+      });
     }
     setLoading(false);
-  }, []);
+  }, [hasZitadelConfig]);
 
   const login = () => {
+    // If Zitadel is not configured, do nothing (backend handles auth)
+    if (!hasZitadelConfig) {
+      return;
+    }
     // For v1, we'll use a simple OAuth flow
     // In production, use @zitadel/react SDK for proper OAuth2 PKCE flow
     const redirectUri = encodeURIComponent(window.location.origin + '/auth/callback');
@@ -79,7 +93,8 @@ export function useAuth() {
     user,
     token,
     loading,
-    isAuthenticated: !!token && !!user,
+    // If Zitadel is configured, require token. Otherwise, user is enough (backend handles it)
+    isAuthenticated: hasZitadelConfig ? (!!token && !!user) : !!user,
     login,
     logout,
     setAuthToken,
