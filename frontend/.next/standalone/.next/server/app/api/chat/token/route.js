@@ -1,5 +1,6 @@
 var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/chat/token/route.js")
-R.c("server/chunks/[root-of-the-server]__86727bfc._.js")
+R.c("server/chunks/[root-of-the-server]__1cf62a08._.js")
+R.c("server/chunks/node_modules_next_dist_esm_build_templates_app-route_6a721dfb.js")
 R.c("server/chunks/[root-of-the-server]__b2da729a._.js")
 R.c("server/chunks/node_modules_jose_dist_webapi_jwks_remote_91060d4e.js")
 R.c("server/chunks/_next-internal_server_app_api_chat_token_route_actions_377320e6.js")
