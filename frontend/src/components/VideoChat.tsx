@@ -1,7 +1,6 @@
 /** Main video chat component. */
 
-import { useState, useEffect } from 'react';
-import { Room } from 'livekit-client';
+import { useState } from 'react';
 import { useLiveKit } from '../hooks/useLiveKit';
 import { VideoGrid } from './VideoGrid';
 import { Controls } from './Controls';

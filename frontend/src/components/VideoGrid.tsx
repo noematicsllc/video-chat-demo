@@ -44,7 +44,7 @@ export function VideoGrid({ room, participants }: VideoGridProps) {
     // Set up event listeners
     const handleTrackSubscribed = (
       track: Track,
-      publication: any,
+      _publication: any,
       participant: Participant
     ) => {
       if (track.kind === 'video') {
@@ -56,7 +56,7 @@ export function VideoGrid({ room, participants }: VideoGridProps) {
 
     const handleTrackUnsubscribed = (
       track: Track,
-      publication: any,
+      _publication: any,
       participant: Participant
     ) => {
       if (track.kind === 'video') {

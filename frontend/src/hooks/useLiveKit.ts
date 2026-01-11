@@ -1,6 +1,6 @@
 /** Custom hook for LiveKit connection. */
 
-import { Room, RoomEvent, Track, RemoteParticipant } from 'livekit-client';
+import { Room, RoomEvent, RemoteParticipant } from 'livekit-client';
 import { useEffect, useState, useCallback } from 'react';
 import { generateToken } from '../services/api';
 import { getLiveKitServerUrl } from '../utils/config';

@@ -1,7 +1,7 @@
 /** Audio/video controls component. */
 
 import { useState, useEffect } from 'react';
-import { Room, LocalParticipant } from 'livekit-client';
+import { Room } from 'livekit-client';
 
 interface ControlsProps {
   room: Room | null;
@@ -11,11 +11,9 @@ interface ControlsProps {
 export function Controls({ room, onLeave }: ControlsProps) {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
 
   useEffect(() => {
     if (room) {
-      setLocalParticipant(room.localParticipant);
       setIsAudioEnabled(room.localParticipant.isMicrophoneEnabled);
       setIsVideoEnabled(room.localParticipant.isCameraEnabled);
     }
