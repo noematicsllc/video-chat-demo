@@ -49,9 +49,9 @@ def generate_access_token(
         if participant_name:
             token = token.with_name(participant_name)
 
-        # Add video grant
-        token = token.with_grant(
-            api.VideoGrant(
+        # Add video grants
+        token = token.with_grants(
+            api.VideoGrants(
                 room_join=True,
                 room=room_name,
                 can_publish=True,
