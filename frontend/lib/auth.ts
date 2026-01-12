@@ -66,3 +66,29 @@ export function getUserFromToken(): User | null {
   return decodeToken(token);
 }
 
+/**
+ * Create a JWT token for chat server authentication.
+ * This token is used to authenticate with the Elixir/Phoenix chat server.
+ * 
+ * @param userId - The user ID (must be a UUID string)
+ * @returns JWT token string
+ */
+export function createChatToken(userId: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const jwt = require('jsonwebtoken');
+  const secret = process.env.JWT_SECRET!;
+  
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
+  // This payload matches EXACTLY what we coded in Elixir's Token.verify_and_validate
+  const payload = {
+    sub: userId,
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
+    iat: Math.floor(Date.now() / 1000),
+  };
+
+  return jwt.sign(payload, secret, { algorithm: 'HS256' });
+}
+
