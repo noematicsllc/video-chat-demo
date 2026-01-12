@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createChatToken } from '@/lib/auth';
-import { fetchMessages } from '@/lib/db';
+import { fetchMessages, type Message } from '@/lib/db';
 import { getCurrentUserId } from '@/lib/server-auth';
+import type { ChatMessage } from '@/lib/chat';
 import ChatRoomClient from './client';
 import { v5 as uuidv5 } from 'uuid';
 
@@ -51,7 +52,7 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
   // 3. Fetch History (Optional but recommended)
   // Fetch the last 50 messages from Postgres directly here on the server
   // This is faster than asking the socket to do it.
-  let initialMessages = [];
+  let initialMessages: Message[] = [];
   try {
     initialMessages = await fetchMessages(params.id, 50);
   } catch (error) {
@@ -59,11 +60,19 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
     // Continue without initial messages if database is not configured
   }
 
+  // Convert Message[] to ChatMessage[] format for the client component
+  const chatMessages: ChatMessage[] = initialMessages.map((msg) => ({
+    id: msg.id,
+    content: msg.content,
+    sender_id: msg.sender_id,
+    inserted_at: msg.inserted_at.toISOString(),
+  }));
+
   return (
     <ChatRoomClient 
       conversationId={params.id}
       token={chatToken}
-      initialMessages={initialMessages}
+      initialMessages={chatMessages}
       currentUserId={userId}
       wsUrl={CHAT_WS_URL}
     />
