@@ -63,19 +63,20 @@ async function verifyToken(token: string): Promise<jose.JWTPayload> {
  * @returns The user payload or null if not authenticated
  */
 export async function getServerSession(): Promise<jose.JWTPayload | null> {
+  // If auth is disabled, always return mock user
+  if (!REQUIRE_AUTH) {
+    return {
+      sub: 'mock-user',
+      preferred_username: 'mock-user',
+      name: 'Mock User',
+    };
+  }
+
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
     if (!token) {
-      if (!REQUIRE_AUTH) {
-        // Return mock user if auth is disabled
-        return {
-          sub: 'mock-user',
-          preferred_username: 'mock-user',
-          name: 'Mock User',
-        };
-      }
       return null;
     }
 
